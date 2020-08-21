@@ -315,7 +315,7 @@ void setup() {
   if(psramFound()){
     Serial.println("psramFound");
     config.frame_size = FRAMESIZE_VGA;
-    config.jpeg_quality = 30;
+    config.jpeg_quality = 14;
     config.fb_count = 2;
   } else {
     Serial.println("psram NOT Found");
@@ -329,6 +329,22 @@ void setup() {
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
+  }
+  sensor_t * s = esp_camera_sensor_get();
+  //initial sensors are flipped vertically and colors are a bit saturated
+  if (s->id.PID == OV3660_PID) {
+    s->set_brightness(s, 1);//up the blightness just a bit
+    s->set_saturation(s, -1);//lower the saturation
+
+    s->set_contrast(s, -1);//lower the saturation
+    s->set_whitebal(s, 1);//lower the saturation
+    s->set_aec2(s, 0);//lower the saturation
+    s->set_whitebal(s, 1);//lower the saturation
+    s->set_exposure_ctrl(s, 0);//lower the saturation
+    s->set_gain_ctrl(s, 0); // auto gain off (1 or 0)
+    s->set_exposure_ctrl(s, 0); // auto exposure off (1 or 0)
+    s->set_agc_gain(s, 0); // set gain manually (0 - 30)
+    s->set_aec_value(s, 600); // set exposure manually (0-1200)
   }
   // Wi-Fi connection
   WiFi.begin(ssid, password);
@@ -372,7 +388,7 @@ String sendPhoto() {
 
   if (client.connect(serverName.c_str(), serverPort)) {
     Serial.println("Connection successful!");    
-    String head = "--VLTMedia\r\nContent-Disposition: form-data; name=\"imageFile\"; filename=\"bird-cam-B.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
+    String head = "--VLTMedia\r\nContent-Disposition: form-data; name=\"imageFile\"; filename=\"bird-cam-A.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
     String tail = "\r\n--VLTMedia--\r\n";
 
     uint16_t imageLen = fb->len;
